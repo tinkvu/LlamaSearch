@@ -14,7 +14,7 @@ class SearchValidationSystem:
         self.groq_client = Groq(api_key=groq_api_key)
         self.search_results_cache = {}
 
-    def fetch_bing_results(self, query: str, num_results: int = 5) -> List[Dict]:
+    def fetch_bing_results(self, query: str, num_results: int = 10) -> List[Dict]:
         """Fetch search results from Bing by scraping the search results page."""
         url = f"https://www.bing.com/search?q={query}"
         results = []
