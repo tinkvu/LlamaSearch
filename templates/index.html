@@ -97,8 +97,8 @@
 
         <div id="results">
             <div class="tabs">
-                <div class="tab" onclick="showTab('searchResults')">Search Results</div>
-                <div class="tab active" onclick="showTab('validationResults')">Validation Results</div>
+                <div class="tab active" onclick="showTab('searchResults')">Search Results</div>
+                <div class="tab" onclick="showTab('validationResults')">Validation Results</div>
             </div>
             <div id="searchResults" class="tab-content active"></div>
             <div id="validationResults" class="tab-content"></div>
@@ -146,8 +146,7 @@
                         validationResultsDiv.innerHTML += `
                             <div class="result">
                                 <h4>Validation Details:</h4>
-                                <p>${validation.validation}</p>
-                                
+                                <p>${formatValidation(validation.validation)}</p>
                             </div>
                         `;
                     }
@@ -155,6 +154,14 @@
             } else {
                 searchResultsDiv.innerHTML = `<div class="result">Error: Unable to fetch results</div>`;
             }
+        }
+
+        function formatValidation(validationText) {
+            // Format the validation text to bold specific parts
+            return validationText
+                .replace(/(\*\*.*?\*\*)/g, '<strong>$1</strong>') // Bold text wrapped in **
+                .replace(/(\d+\.\s)/g, '<strong>$1</strong>') // Bold numbered items
+                .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>'); // Convert URLs to links
         }
 
         function showTab(tabName) {
