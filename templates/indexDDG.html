@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Validation System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 20px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #357ae8;
+        }
+        #results {
+            margin-top: 20px;
+        }
+        .result {
+            background: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        /* Loader styles */
+        .loader {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        /* Tab styles */
+        .tabs {
+            display: flex;
+            cursor: pointer;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #4285f4;
+        }
+        .tab {
+            padding: 10px 20px;
+            margin-right: 5px;
+            font-weight: bold;
+            color: #4285f4;
+        }
+        .tab.active {
+            border-bottom: 2px solid #4285f4;
+            color: #333;
+        }
+        .tab-content {
+            display: none;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background: #fff;
+            border-radius: 4px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* Footer styles */
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        footer a {
+            color: #4285f4;
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+        /* Responsive design */
+        @media (max-width: 600px) {
+            input[type="text"] {
+                width: calc(100% - 16px);
+            }
+            .tab {
+                padding: 10px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Llama Search</h1>
+        <input type="text" id="query" placeholder="Enter your search query">
+        <button onclick="performSearch()">Search</button>
+
+        <div class="loader" id="loader">Loading...</div>
+
+        <div id="results">
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('validationResults')">Validation Results</div>
+                <div class="tab" onclick="showTab('searchResults')">Search Results</div>
+            </div>
+            <div id="validationResults" class="tab-content active"></div>
+            <div id="searchResults" class="tab-content"></div>
+        </div>
+    </div>
+
+    <footer>
+        A side project by <a href="https://www.linkedin.com/in/tinkvu/" target="_blank">@tinkvu</a>
+    </footer>
+
+    <script>
+        async function performSearch() {
+            const query = document.getElementById('query').value;
+            const loader = document.getElementById('loader');
+            loader.style.display = 'block'; // Show loader
+
+            const startTime = performance.now(); // Start timer
+            const response = await fetch('/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query })
+            });
+
+            const searchResultsDiv = document.getElementById('searchResults');
+            const validationResultsDiv = document.getElementById('validationResults');
+            searchResultsDiv.innerHTML = ''; // Clear previous search results
+            validationResultsDiv.innerHTML = ''; // Clear previous validation results
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.error) {
+                    validationResultsDiv.innerHTML = `<div class="result">Error: ${data.error}</div>`;
+                } else {
+                    // Display validation results
+                    validationResultsDiv.innerHTML += `
+                        <h2>Validation Results:</h2>
+                        <div class="result">
+                            <h4>Validation Details:</h4>
+                            <p>${formatValidation(data.validation.validation)}</p>
+                        </div>
+                    `;
+
+                    // Display search results
+                    searchResultsDiv.innerHTML = `<h2>Results for "${data.query}":</h2>`;
+                    data.search_results.forEach(result => {
+                        searchResultsDiv.innerHTML += `
+                            <div class="result">
+                                <h3>${result.title}</h3>
+                                <p><strong>URL:</strong> <a href="${result.url}" target="_blank">${result.url}</a></p>
+                                <p><strong>Description:</strong> ${result.description}</p>
+                                <p><strong>Timestamp:</strong> ${result.timestamp}</p>
+                            </div>
+                        `;
+                    });
+                }
+            } else {
+                validationResultsDiv.innerHTML = `<div class="result">Error: Unable to fetch results</div>`;
+            }
+
+            const endTime = performance.now(); // End timer
+            const timeTaken = (endTime - startTime).toFixed(2); // Calculate time taken
+            validationResultsDiv.innerHTML += `<p><strong>Time taken:</strong> ${timeTaken} ms</p>`;
+            loader.style.display = 'none'; // Hide loader
+        }
+
+        function formatValidation(validationText) {
+            // Format the validation text to bold specific parts
+            return validationText
+                .replace(/(\*\*.*?\*\*)/g, '<strong>$1</strong>') // Bold text wrapped in **
+                .replace(/(\d+\.\s)/g, '<strong>$1</strong>') // Bold numbered items
+                .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>'); // Convert URLs to links
+        }
+
+        function showTab(tabName) {
+            const searchResultsDiv = document.getElementById('searchResults');
+            const validationResultsDiv = document.getElementById('validationResults');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            if (tabName === 'validationResults') {
+                validationResultsDiv.classList.add('active');
+                tabs[0].classList.add('active');
+            } else {
+                searchResultsDiv.classList.add('active');
+                tabs[1].classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>

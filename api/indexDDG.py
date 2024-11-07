@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 import json
+import time
 from typing import List, Dict
 from groq import Groq
 from flask import Flask, request, jsonify, render_template
@@ -14,9 +15,9 @@ class SearchValidationSystem:
         self.groq_client = Groq(api_key=groq_api_key)
         self.search_results_cache = {}
 
-    def fetch_bing_results(self, query: str, num_results: int = 5) -> List[Dict]:
-        """Fetch search results from Bing by scraping the search results page."""
-        url = f"https://www.bing.com/search?q={query}"
+    def fetch_duckduckgo_lite_results(self, query: str, num_results: int = 5) -> List[Dict]:
+        """Fetch search results from DuckDuckGo Lite."""
+        url = "https://lite.duckduckgo.com/lite"
         results = []
 
         headers = {
@@ -24,29 +25,54 @@ class SearchValidationSystem:
         }
 
         try:
-            response = requests.get(url, headers=headers)
+            response = requests.post(url, headers=headers, data={'q': query})
             response.raise_for_status()
             soup = BeautifulSoup(response.text, 'html.parser')
 
-            # Find the search result elements
-            search_results = soup.find_all('li', class_='b_algo', limit=num_results)
+            links = soup.find_all('a', limit=num_results)
 
-            for result in search_results:
-                title = result.find('h2').get_text(strip=True)
-                result_url = result.find('a')['href']
-                description = result.find('p').get_text(strip=True) if result.find('p') else ""
+            for link in links:
+                title = link.get_text(strip=True)
+                result_url = link.get('href')
 
-                results.append({
-                    'url': result_url,
-                    'title': title,
-                    'description': description,
-                    'timestamp': datetime.now().isoformat()
-                })
+                if result_url and title:
+                    content = self._fetch_page_content(result_url)
+                    results.append({
+                        'url': result_url,
+                        'title': title,
+                        'description': content[:150] + "...",
+                        'timestamp': datetime.now().isoformat()
+                    })
+                time.sleep(1)
 
         except Exception as e:
-            print(f"Error in Bing scraping: {e}")
+            print(f"Error in DuckDuckGo Lite search: {e}")
 
         return results
+
+    def _fetch_page_content(self, url: str) -> str:
+        """Fetch and parse content from a webpage."""
+        try:
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+            }
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()
+
+            soup = BeautifulSoup(response.text, 'html.parser')
+            for element in soup(['script', 'style', 'nav', 'footer', 'header']):
+                element.decompose()
+
+            main_content = soup.find('main') or soup.find('article') or soup.find('body')
+            if main_content:
+                paragraphs = main_content.find_all(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
+                content = ' '.join(p.get_text(strip=True) for p in paragraphs)
+                return content[:5000]
+            return ""
+
+        except Exception as e:
+            print(f"Error fetching page content from {url}: {e}")
+            return ""
 
     def validate_with_llama(self, query: str, search_results: List[Dict]) -> Dict:
         """Validate search results using LLaMA through Groq."""
@@ -103,6 +129,7 @@ class SearchValidationSystem:
 
             return {
                 "validation": validation_response,
+                
             }
 
         except requests.exceptions.RequestException as e:
@@ -120,7 +147,7 @@ class SearchValidationSystem:
             print("Using cached results...")
             return self.search_results_cache[query]
 
-        search_results = self.fetch_bing_results(query)
+        search_results = self.fetch_duckduckgo_lite_results(query)
         if not search_results:
             return {"error": "No search results found"}
 
