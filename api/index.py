@@ -7,7 +7,7 @@ from typing import List, Dict
 from groq import Groq
 from flask import Flask, request, jsonify, render_template
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../templates')
 
 class SearchValidationSystem:
     def __init__(self, groq_api_key: str):
