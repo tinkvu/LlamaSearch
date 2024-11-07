@@ -69,6 +69,7 @@ class SearchValidationSystem:
 
         except Exception as e:
             print(f"Error in Bing scraping: {e}")
+            print(f"Response text: {response.text}")  # Log the response text for debugging
 
         return results
 
@@ -86,9 +87,7 @@ class SearchValidationSystem:
         Context from multiple sources:
         {context}
 
-        Please analyze the above information and provide:
-        1. An answer for the query
-        2. List of reliable reference links
+        Please analyze the above information and provide an answer for the query and list any reference websites if needed.
         """
 
         try:
@@ -98,7 +97,7 @@ class SearchValidationSystem:
                     "content": prompt
                 }],
                 model="llama-3.1-8b-instant",
-                temperature=0.3,
+                temperature=1,
                 max_tokens=2048
             )
 
