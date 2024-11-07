@@ -89,7 +89,7 @@ class SearchValidationSystem:
         {context}
 
         Please analyze the above information and provide:
-        1. A summary of the key findings
+        1. An answer for the query
         2. List of reliable reference links
         """
 
@@ -128,10 +128,8 @@ class SearchValidationSystem:
                 pass
 
             return {
-                "summary": "LLaMA validation summary",
                 "validation": validation_response,
-                "inconsistencies": [],
-                "references": []
+                
             }
 
         except requests.exceptions.RequestException as e:
