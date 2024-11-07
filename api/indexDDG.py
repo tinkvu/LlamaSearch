@@ -16,8 +16,8 @@ class SearchValidationSystem:
         self.search_results_cache = {}
 
     def fetch_duckduckgo_lite_results(self, query: str, num_results: int = 5) -> List[Dict]:
-        """Fetch search results from DuckDuckGo Lite."""
-        url = "https://lite.duckduckgo.com/lite"
+        """Fetch search results from Bing instead of DuckDuckGo Lite."""
+        url = "https://www.bing.com/search"
         results = []
 
         headers = {
@@ -25,15 +25,15 @@ class SearchValidationSystem:
         }
 
         try:
-            response = requests.post(url, headers=headers, data={'q': query})
+            response = requests.get(url, headers=headers, params={'q': query})
             response.raise_for_status()
             soup = BeautifulSoup(response.text, 'html.parser')
 
-            links = soup.find_all('a', limit=num_results)
+            links = soup.find_all('li', class_='b_algo', limit=num_results)
 
             for link in links:
-                title = link.get_text(strip=True)
-                result_url = link.get('href')
+                title = link.find('h2').get_text(strip=True)
+                result_url = link.find('a')['href']
 
                 if result_url and title:
                     content = self._fetch_page_content(result_url)
@@ -46,7 +46,7 @@ class SearchValidationSystem:
                 time.sleep(1)
 
         except Exception as e:
-            print(f"Error in DuckDuckGo Lite search: {e}")
+            print(f"Error in Bing search: {e}")
 
         return results
 
