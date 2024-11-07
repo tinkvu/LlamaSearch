@@ -87,17 +87,34 @@
         .tab-content.active {
             display: block;
         }
+        /* Footer styles */
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        footer a {
+            color: #4285f4;
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
         /* Responsive design */
         @media (max-width: 600px) {
             input[type="text"] {
                 width: calc(100% - 16px);
+            }
+            .tab {
+                padding: 10px 15px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Search Validation System</h1>
+        <h1>Llama Search</h1>
         <input type="text" id="query" placeholder="Enter your search query">
         <button onclick="performSearch()">Search</button>
 
@@ -112,6 +129,10 @@
             <div id="searchResults" class="tab-content"></div>
         </div>
     </div>
+
+    <footer>
+        A side project by <a href="https://www.linkedin.com/in/tinkvu/" target="_blank">@tinkvu</a>
+    </footer>
 
     <script>
         async function performSearch() {
