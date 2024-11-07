@@ -14,6 +14,30 @@ class SearchValidationSystem:
         self.groq_client = Groq(api_key=groq_api_key)
         self.search_results_cache = {}
 
+    def transform_query(self, query: str) -> str:
+        """Transform the user query into a Bing-searchable query using LLaMA."""
+        prompt = f"Transform the following query into a more suitable format for Bing search: {query}"
+
+        try:
+            response = self.groq_client.chat.completions.create(
+                messages=[{
+                    "role": "user",
+                    "content": prompt
+                }],
+                model="llama-3.1-8b-instant",
+                temperature=0.3,
+                max_tokens=50
+            )
+
+            if response.choices and response.choices[0].message.content:
+                transformed_query = response.choices[0].message.content.strip()
+                return transformed_query
+
+        except requests.exceptions.RequestException as e:
+            print(f"Request error in query transformation: {e}")
+
+        return query  # Fallback to original query if transformation fails
+
     def fetch_bing_results(self, query: str, num_results: int = 10) -> List[Dict]:
         """Fetch search results from Bing by scraping the search results page."""
         url = f"https://www.bing.com/search?q={query}"
@@ -120,10 +144,15 @@ class SearchValidationSystem:
             print("Using cached results...")
             return self.search_results_cache[query]
 
-        search_results = self.fetch_bing_results(query)
+        # Step 1: Transform the user query
+        transformed_query = self.transform_query(query)
+
+        # Step 2: Fetch search results from Bing using the transformed query
+        search_results = self.fetch_bing_results(transformed_query)
         if not search_results:
             return {"error": "No search results found"}
 
+        # Step 3: Validate the search results and generate an answer
         validation_results = self.validate_with_llama(query, search_results)
 
         final_results = {
