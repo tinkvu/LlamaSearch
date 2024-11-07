@@ -104,6 +104,9 @@ class SearchValidationSystem:
                 max_tokens=2048
             )
 
+            # Debugging: Print the raw response
+            print("LLaMA Response:", response)
+
             if not response.choices or not response.choices[0].message.content:
                 return {
                     "summary": "Error in validation process",
@@ -113,6 +116,9 @@ class SearchValidationSystem:
                 }
 
             validation_response = response.choices[0].message.content
+
+            # Debugging: Print the validation response
+            print("Validation Response:", validation_response)
 
             try:
                 validation_data = json.loads(validation_response)
