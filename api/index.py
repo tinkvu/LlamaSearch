@@ -55,6 +55,9 @@ class SearchValidationSystem:
             # Find the search result elements
             search_results = soup.find_all('li', class_='b_algo', limit=num_results)
 
+            if not search_results:
+                print("No search results found in the HTML structure.")  # Log if no results are found
+
             for result in search_results:
                 title = result.find('h2').get_text(strip=True)
                 result_url = result.find('a')['href']
@@ -69,7 +72,8 @@ class SearchValidationSystem:
 
         except Exception as e:
             print(f"Error in Bing scraping: {e}")
-            print(f"Response text: {response.text}")  # Log the response text for debugging
+            if 'response' in locals():
+                print(f"Response text: {response.text}")  # Log the response text for debugging
 
         return results
 
@@ -145,6 +149,7 @@ class SearchValidationSystem:
 
         # Step 1: Transform the user query
         transformed_query = self.transform_query(query)
+        print(f"Transformed Query: {transformed_query}")  # Log the transformed query
 
         # Step 2: Fetch search results from Bing using the transformed query
         search_results = self.fetch_bing_results(transformed_query)
