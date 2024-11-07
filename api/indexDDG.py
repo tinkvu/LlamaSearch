@@ -147,8 +147,17 @@ class SearchValidationSystem:
             return self.search_results_cache[query]
 
         search_results = self.fetch_duckduckgo_lite_results(query)
+        
+        # Check if search results are empty
         if not search_results:
-            return {"error": "No search results found"}
+            # Call validate_with_llama with empty results
+            validation_results = self.validate_with_llama(query, [])
+            return {
+                "query": query,
+                "timestamp": datetime.now().isoformat(),
+                "search_results": [],
+                "validation": validation_results
+            }
 
         validation_results = self.validate_with_llama(query, search_results)
 
