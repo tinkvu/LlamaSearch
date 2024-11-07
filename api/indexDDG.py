@@ -16,8 +16,8 @@ class SearchValidationSystem:
         self.search_results_cache = {}
 
     def fetch_duckduckgo_lite_results(self, query: str, num_results: int = 5) -> List[Dict]:
-        """Fetch search results from Bing instead of DuckDuckGo Lite."""
-        url = "https://www.bing.com/search"
+        """Fetch search results from Bing using Beautiful Soup."""
+        url = f"https://www.bing.com/search?q={query}"  # URL for Bing search with query
         results = []
 
         headers = {
@@ -25,10 +25,12 @@ class SearchValidationSystem:
         }
 
         try:
+            # Send a GET request to Bing with the search query
             response = requests.get(url, headers=headers, params={'q': query})
             response.raise_for_status()
             soup = BeautifulSoup(response.text, 'html.parser')
 
+            # Find search result links using Beautiful Soup
             links = soup.find_all('li', class_='b_algo', limit=num_results)
 
             for link in links:
@@ -43,7 +45,7 @@ class SearchValidationSystem:
                         'description': content[:150] + "...",
                         'timestamp': datetime.now().isoformat()
                     })
-                time.sleep(1)
+                time.sleep(1)  # Respectful scraping delay
 
         except Exception as e:
             print(f"Error in Bing search: {e}")
