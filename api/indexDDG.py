@@ -88,9 +88,7 @@ class SearchValidationSystem:
         Context from multiple sources:
         {context}
 
-        Please analyze the above information and provide:
-        1. An answer for the query
-        2. List of reliable reference links
+        Please analyze the above information and provide the answer for the query. And list any references if any.
         """
 
         try:
