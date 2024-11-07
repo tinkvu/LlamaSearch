@@ -28,6 +28,32 @@
             margin: 10px 0;
             border: 1px solid #ddd;
         }
+        /* Tab styles */
+        .tabs {
+            display: flex;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        .tab {
+            padding: 10px 20px;
+            background: #ddd;
+            border: 1px solid #ccc;
+            border-bottom: none;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background: #fff;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background: #fff;
+        }
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -35,7 +61,14 @@
     <input type="text" id="query" placeholder="Enter your search query">
     <button onclick="performSearch()">Search</button>
 
-    <div id="results"></div>
+    <div id="results">
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('searchResults')">Search Results</div>
+            <div class="tab" onclick="showTab('validationResults')">Validation Results</div>
+        </div>
+        <div id="searchResults" class="tab-content active"></div>
+        <div id="validationResults" class="tab-content"></div>
+    </div>
 
     <script>
         async function performSearch() {
@@ -48,17 +81,19 @@
                 body: JSON.stringify({ query })
             });
 
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = ''; // Clear previous results
+            const searchResultsDiv = document.getElementById('searchResults');
+            const validationResultsDiv = document.getElementById('validationResults');
+            searchResultsDiv.innerHTML = ''; // Clear previous search results
+            validationResultsDiv.innerHTML = ''; // Clear previous validation results
 
             if (response.ok) {
                 const data = await response.json();
                 if (data.error) {
-                    resultsDiv.innerHTML = `<div class="result">Error: ${data.error}</div>`;
+                    searchResultsDiv.innerHTML = `<div class="result">Error: ${data.error}</div>`;
                 } else {
-                    resultsDiv.innerHTML = `<h2>Results for "${data.query}":</h2>`;
+                    searchResultsDiv.innerHTML = `<h2>Results for "${data.query}":</h2>`;
                     data.search_results.forEach(result => {
-                        resultsDiv.innerHTML += `
+                        searchResultsDiv.innerHTML += `
                             <div class="result">
                                 <h3>${result.title}</h3>
                                 <p><strong>URL:</strong> <a href="${result.url}" target="_blank">${result.url}</a></p>
@@ -71,20 +106,46 @@
                     // Display the validation results
                     const validation = data.validation;
                     if (validation.error) {
-                        resultsDiv.innerHTML += `<div class="result">Validation Error: ${validation.error}</div>`;
+                        validationResultsDiv.innerHTML = `<div class="result">Validation Error: ${validation.error}</div>`;
                     } else {
-                        resultsDiv.innerHTML += `
+                        validationResultsDiv.innerHTML += `
                             <div class="result">
                                 <h3>Validation Summary:</h3>
                                 <p>${validation.summary}</p>
                                 <h4>Validation Details:</h4>
                                 <p>${validation.validation}</p>
+                                <h4>List of Reliable Reference Links:</h4>
+                                <ul>
+                                    ${validation.references.map(ref => `<li><a href="${ref}" target="_blank">${ref}</a></li>`).join('')}
+                                </ul>
                             </div>
                         `;
                     }
                 }
             } else {
-                resultsDiv.innerHTML = `<div class="result">Error: Unable to fetch results</div>`;
+                searchResultsDiv.innerHTML = `<div class="result">Error: Unable to fetch results</div>`;
+            }
+        }
+
+        function showTab(tabName) {
+            const searchResultsDiv = document.getElementById('searchResults');
+            const validationResultsDiv = document.getElementById('validationResults');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            if (tabName === 'searchResults') {
+                searchResultsDiv.classList.add('active');
+                tabs[0].classList.add('active');
+            } else {
+                validationResultsDiv.classList.add('active');
+                tabs[1].classList.add('active');
             }
         }
     </script>
