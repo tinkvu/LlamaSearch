@@ -54,13 +54,11 @@
             border: 1px solid #ddd;
             border-radius: 4px;
         }
-        /* Loader styles */
         .loader {
             display: none;
             text-align: center;
             margin: 20px 0;
         }
-        /* Tab styles */
         .tabs {
             display: flex;
             cursor: pointer;
@@ -87,7 +85,6 @@
         .tab-content.active {
             display: block;
         }
-        /* Footer styles */
         footer {
             text-align: center;
             margin-top: 20px;
@@ -101,7 +98,6 @@
         footer a:hover {
             text-decoration: underline;
         }
-        /* Responsive design */
         @media (max-width: 600px) {
             input[type="text"] {
                 width: calc(100% - 16px);
@@ -192,7 +188,6 @@
         }
 
         function formatValidation(validationText) {
-            // Format the validation text to bold specific parts
             return validationText
                 .replace(/(\*\*.*?\*\*)/g, '<strong>$1</strong>') // Bold text wrapped in **
                 .replace(/(\d+\.\s)/g, '<strong>$1</strong>') // Bold numbered items

@@ -8,8 +8,12 @@
   ],
   "routes": [
     {
+      "src": "/search",
+      "dest": "api/index.py"
+    },
+    {
       "src": "/(.*)",
-      "dest": "api/indexDDG.py"
+      "dest": "api/index.py"
     }
   ]
 }
