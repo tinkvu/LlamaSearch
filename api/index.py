@@ -159,6 +159,10 @@ class SearchValidationSystem:
         self.search_results_cache[query] = final_results
         return final_results
 
+# Instantiate the SearchValidationSystem globally
+groq_api_key = "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"  # Replace with your Groq API key
+system = SearchValidationSystem(groq_api_key)
+
 @app.route('/')
 def index():
     """Render the main UI page."""
@@ -177,6 +181,4 @@ def search():
     return jsonify(results)
 
 if __name__ == "__main__":
-    groq_api_key = "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"  # Replace with your Groq API key
-    system = SearchValidationSystem(groq_api_key)
     app.run()
