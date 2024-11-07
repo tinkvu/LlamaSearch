@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Validation System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 15px;
+        }
+        #results {
+            margin-top: 20px;
+        }
+        .result {
+            background: #fff;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Search Validation System</h1>
+    <input type="text" id="query" placeholder="Enter your search query">
+    <button onclick="performSearch()">Search</button>
+
+    <div id="results"></div>
+
+    <script>
+        async function performSearch() {
+            const query = document.getElementById('query').value;
+            const response = await fetch('/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query })
+            });
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = ''; // Clear previous results
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.error) {
+                    resultsDiv.innerHTML = `<div class="result">Error: ${data.error}</div>`;
+                } else {
+                    resultsDiv.innerHTML = `<h2>Results for "${data.query}":</h2>`;
+                    data.search_results.forEach(result => {
+                        resultsDiv.innerHTML += `
+                            <div class="result">
+                                <h3>${result.title}</h3>
+                                <p><strong>URL:</strong> <a href="${result.url}" target="_blank">${result.url}</a></p>
+                                <p><strong>Description:</strong> ${result.description}</p>
+                                <p><strong>Timestamp:</strong> ${result.timestamp}</p>
+                            </div>
+                        `;
+                    });
+                }
+            } else {
+                resultsDiv.innerHTML = `<div class="result">Error: Unable to fetch results</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
