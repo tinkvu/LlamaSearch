@@ -67,6 +67,21 @@
                             </div>
                         `;
                     });
+
+                    // Display the validation results
+                    const validation = data.validation;
+                    if (validation.error) {
+                        resultsDiv.innerHTML += `<div class="result">Validation Error: ${validation.error}</div>`;
+                    } else {
+                        resultsDiv.innerHTML += `
+                            <div class="result">
+                                <h3>Validation Summary:</h3>
+                                <p>${validation.summary}</p>
+                                <h4>Validation Details:</h4>
+                                <p>${validation.validation}</p>
+                            </div>
+                        `;
+                    }
                 }
             } else {
                 resultsDiv.innerHTML = `<div class="result">Error: Unable to fetch results</div>`;
