@@ -54,6 +54,12 @@
             border: 1px solid #ddd;
             border-radius: 4px;
         }
+        /* Loader styles */
+        .loader {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
         /* Tab styles */
         .tabs {
             display: flex;
@@ -95,19 +101,25 @@
         <input type="text" id="query" placeholder="Enter your search query">
         <button onclick="performSearch()">Search</button>
 
+        <div class="loader" id="loader">Loading...</div>
+
         <div id="results">
             <div class="tabs">
-                <div class="tab active" onclick="showTab('searchResults')">Search Results</div>
-                <div class="tab" onclick="showTab('validationResults')">Validation Results</div>
+                <div class="tab active" onclick="showTab('validationResults')">Validation Results</div>
+                <div class="tab" onclick="showTab('searchResults')">Search Results</div>
             </div>
-            <div id="searchResults" class="tab-content active"></div>
-            <div id="validationResults" class="tab-content"></div>
+            <div id="validationResults" class="tab-content active"></div>
+            <div id="searchResults" class="tab-content"></div>
         </div>
     </div>
 
     <script>
         async function performSearch() {
             const query = document.getElementById('query').value;
+            const loader = document.getElementById('loader');
+            loader.style.display = 'block'; // Show loader
+
+            const startTime = performance.now(); // Start timer
             const response = await fetch('/search', {
                 method: 'POST',
                 headers: {
@@ -124,8 +136,18 @@
             if (response.ok) {
                 const data = await response.json();
                 if (data.error) {
-                    searchResultsDiv.innerHTML = `<div class="result">Error: ${data.error}</div>`;
+                    validationResultsDiv.innerHTML = `<div class="result">Error: ${data.error}</div>`;
                 } else {
+                    // Display validation results
+                    validationResultsDiv.innerHTML += `
+                        <h2>Validation Results:</h2>
+                        <div class="result">
+                            <h4>Validation Details:</h4>
+                            <p>${formatValidation(data.validation.validation)}</p>
+                        </div>
+                    `;
+
+                    // Display search results
                     searchResultsDiv.innerHTML = `<h2>Results for "${data.query}":</h2>`;
                     data.search_results.forEach(result => {
                         searchResultsDiv.innerHTML += `
@@ -137,23 +159,15 @@
                             </div>
                         `;
                     });
-
-                    // Display the validation results
-                    const validation = data.validation;
-                    if (validation.error) {
-                        validationResultsDiv.innerHTML = `<div class="result">Validation Error: ${validation.error}</div>`;
-                    } else {
-                        validationResultsDiv.innerHTML += `
-                            <div class="result">
-                                <h4>Validation Details:</h4>
-                                <p>${formatValidation(validation.validation)}</p>
-                            </div>
-                        `;
-                    }
                 }
             } else {
-                searchResultsDiv.innerHTML = `<div class="result">Error: Unable to fetch results</div>`;
+                validationResultsDiv.innerHTML = `<div class="result">Error: Unable to fetch results</div>`;
             }
+
+            const endTime = performance.now(); // End timer
+            const timeTaken = (endTime - startTime).toFixed(2); // Calculate time taken
+            validationResultsDiv.innerHTML += `<p><strong>Time taken:</strong> ${timeTaken} ms</p>`;
+            loader.style.display = 'none'; // Hide loader
         }
 
         function formatValidation(validationText) {
@@ -177,11 +191,11 @@
                 content.classList.remove('active');
             });
 
-            if (tabName === 'searchResults') {
-                searchResultsDiv.classList.add('active');
+            if (tabName === 'validationResults') {
+                validationResultsDiv.classList.add('active');
                 tabs[0].classList.add('active');
             } else {
-                validationResultsDiv.classList.add('active');
+                searchResultsDiv.classList.add('active');
                 tabs[1].classList.add('active');
             }
         }
